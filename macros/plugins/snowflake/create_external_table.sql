@@ -4,6 +4,7 @@
     {%- set external = source_node.external -%}
     {%- set partitions = external.partitions -%}
     {%- set infer_schema = external.infer_schema -%}
+    {%- set infer_schema_incl_filename_column = external.infer_schema_incl_filename_column -%}
     {%- set ignore_case = external.ignore_case or false  -%}
 
     {% if infer_schema %}
@@ -67,6 +68,9 @@
                 {{column[0]}} {{column[1]}} as ({{col_expression}}::{{column[1]}})
                 {{- ',' if not loop.last -}}
             {% endfor %}
+            {%- if infer_schema_incl_filename_column -%}
+                ',METADATA$FILENAME VARCHAR'
+            {%- endif -%}
         {%- endif -%}
     )
     {%- endif -%}
