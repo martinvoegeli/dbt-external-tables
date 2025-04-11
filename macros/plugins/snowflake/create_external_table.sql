@@ -5,6 +5,7 @@
     {%- set partitions = external.partitions -%}
     {%- set infer_schema = external.infer_schema -%}
     {%- set infer_schema_incl_filename_column = external.infer_schema_incl_filename_column -%}
+    {%- set infer_schema_incl_partition_column = external.infer_schema_incl_partition_column -%}
     {%- set ignore_case = external.ignore_case or false  -%}
 
     {% if infer_schema %}
@@ -66,11 +67,18 @@
                     (case when is_null_value({{col_id}}) or lower({{col_id}}) = 'null' then null else {{col_id}} end)
                 {%- endset %}
                 {{column[0]}} {{column[1]}} as ({{col_expression}}::{{column[1]}})
-                {{- ',' if not loop.last -}}
+                {{- ',' if not loop.last or infer_schema_incl_filename_column or infer_schema_incl_partition_column -}}
             {% endfor %}
             {%- if infer_schema_incl_filename_column -%}
-                ',METADATA$FILENAME VARCHAR'
+                'METADATA$FILENAME VARCHAR'
+                {{- ',' if not infer_schema_incl_partition_column-}}
             {%- endif -%}
+            {%- if infer_schema_incl_partition_column -%}
+                {%- if partitions -%}{%- for partition in partitions %}
+                     ','{{partition.name}}{{- ',' if not loop.last  -}}
+                {%- endfor -%}{%- endif -%}
+            {%- endif -%}
+
         {%- endif -%}
     )
     {%- endif -%}
