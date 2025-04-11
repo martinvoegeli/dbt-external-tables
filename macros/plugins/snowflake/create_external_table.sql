@@ -7,8 +7,6 @@
     {%- set infer_schema_incl_filename_column = external.infer_schema_incl_filename_column -%}
     {%- set infer_schema_incl_filelastchanged_column = external.infer_schema_incl_filelastchanged_column -%}
     {%- set infer_schema_incl_rownumber_column = external.infer_schema_incl_rownumber_column -%}
-
-
     {%- set infer_schema_incl_partition_column = external.infer_schema_incl_partition_column -%}
     {%- set ignore_case = external.ignore_case or false  -%}
 
@@ -71,7 +69,7 @@
                     (case when is_null_value({{col_id}}) or lower({{col_id}}) = 'null' then null else {{col_id}} end)
                 {%- endset %}
                 {{column[0]}} {{column[1]}} as ({{col_expression}}::{{column[1]}})
-                {{- ',' if not loop.last or infer_schema_incl_filename_column or infer_schema_incl_partition_column -}}
+                {{- ',' if not loop.last or infer_schema_incl_filename_column or infer_schema_incl_filelastchanged_column or infer_schema_incl_rownumber_column or infer_schema_incl_partition_column -}}
             {% endfor %}
             {%- if infer_schema_incl_filename_column -%}
                 source_filename VARCHAR AS (METADATA$FILENAME)
