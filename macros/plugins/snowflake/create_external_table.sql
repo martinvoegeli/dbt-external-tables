@@ -5,6 +5,10 @@
     {%- set partitions = external.partitions -%}
     {%- set infer_schema = external.infer_schema -%}
     {%- set infer_schema_incl_filename_column = external.infer_schema_incl_filename_column -%}
+    {%- set infer_schema_incl_filelastchanged_column = external.infer_schema_incl_filelastchanged_column -%}
+    {%- set infer_schema_incl_rownumber_column = external.infer_schema_incl_rownumber_column -%}
+
+
     {%- set infer_schema_incl_partition_column = external.infer_schema_incl_partition_column -%}
     {%- set ignore_case = external.ignore_case or false  -%}
 
@@ -71,6 +75,14 @@
             {% endfor %}
             {%- if infer_schema_incl_filename_column -%}
                 source_filename VARCHAR AS (METADATA$FILENAME)
+                {{- ',' if not infer_schema_incl_filelastchanged_column-}}
+            {%- endif -%}
+             {%- if infer_schema_incl_filelastchanged_column -%}
+                source_file_last_modified TIMESTAMP_NTZ AS (METADATA$FILE_LAST_MODIFIED)
+                {{- ',' if not infer_schema_incl_rownumber_column-}}
+            {%- endif -%}
+             {%- if infer_schema_incl_rownumber_column -%}
+                source_file_row_number BIGINT AS (METADATA$FILE_ROW_NUMBER)
                 {{- ',' if not infer_schema_incl_partition_column-}}
             {%- endif -%}
             {%- if infer_schema_incl_partition_column -%}
