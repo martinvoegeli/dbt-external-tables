@@ -70,7 +70,7 @@
                 {{- ',' if not loop.last or infer_schema_incl_filename_column or infer_schema_incl_partition_column -}}
             {% endfor %}
             {%- if infer_schema_incl_filename_column -%}
-                'METADATA$FILENAME VARCHAR'
+                source_filename VARCHAR AS (METADATA$FILENAME)
                 {{- ',' if not infer_schema_incl_partition_column-}}
             {%- endif -%}
             {%- if infer_schema_incl_partition_column -%}
