@@ -77,11 +77,11 @@
                 source_filename VARCHAR AS (METADATA$FILENAME)
                 {{- ',' if not infer_schema_incl_filelastchanged_column-}}
             {%- endif -%}
-             {%- if infer_schema_incl_filelastchanged_column -%}
+            {%- if infer_schema_incl_filelastchanged_column -%}
                 source_file_last_modified TIMESTAMP_NTZ AS (METADATA$FILE_LAST_MODIFIED)
                 {{- ',' if not infer_schema_incl_rownumber_column-}}
             {%- endif -%}
-             {%- if infer_schema_incl_rownumber_column -%}
+            {%- if infer_schema_incl_rownumber_column -%}
                 source_file_row_number BIGINT AS (METADATA$FILE_ROW_NUMBER)
                 {{- ',' if not infer_schema_incl_partition_column-}}
             {%- endif -%}
