@@ -60,36 +60,49 @@
             {% endfor %}
         {% else %}
         {%- for column in columns_infer %}
-                {%- set col_expression -%}
+            {#– quote the raw column name –#}
+            {%- set raw_name   = column[0] -%}
+            {%- set data_type  = column[1] -%}
+            {%- set quoted_name = adapter.quote(raw_name) -%}
+            {#– build the expression, using quoted_name –#}
+            {%- set col_expression -%}
                 {%- if ignore_case -%}
-                    {%- set col_id = 'GET_IGNORE_CASE($1, ' ~ "'"~ column[0] ~"'"~ ')' -%}
+                    {%- set col_id = 'GET_IGNORE_CASE($1, ' ~ "'" ~ quoted_name ~ "'" ~ ')' -%}
                 {%- else -%}
-                    {%- set col_id = 'value:' ~ column[0] -%}
+                    {%- set col_id = 'value:' ~ quoted_name -%}
                 {%- endif -%}
-                    (case when is_null_value({{col_id}}) or lower({{col_id}}) = 'null' then null else {{col_id}} end)
-                {%- endset %}
-                {{column[0]}} {{column[1]}} as ({{col_expression}}::{{column[1]}})
-                {{- ',' if not loop.last or infer_schema_incl_filename_column or infer_schema_incl_filelastchanged_column or infer_schema_incl_rownumber_column or infer_schema_incl_partition_column -}}
-            {% endfor %}
-            {%- if infer_schema_incl_filename_column -%}
-                source_filename VARCHAR AS (METADATA$FILENAME)
-                {{- ',' if not infer_schema_incl_filelastchanged_column or infer_schema_incl_rownumber_column or infer_schema_incl_partition_column -}}
-            {%- endif -%}
-            {%- if infer_schema_incl_filelastchanged_column -%}
-                source_file_last_modified TIMESTAMP_NTZ AS (METADATA$FILE_LAST_MODIFIED)
-                {{- ',' if not infer_schema_incl_rownumber_column or infer_schema_incl_partition_column -}}
-            {%- endif -%}
-            {%- if infer_schema_incl_rownumber_column -%}
-                source_file_row_number BIGINT AS (METADATA$FILE_ROW_NUMBER)
-                {{- ',' if not infer_schema_incl_partition_column -}}
-            {%- endif -%}
-            {%- if infer_schema_incl_partition_column -%}
-                {%- if partitions -%}{%- for partition in partitions %}
-                     ','{{partition.name}}{{- ',' if not loop.last  -}}
-                {%- endfor -%}{%- endif -%}
-            {%- endif -%}
-
+                (case
+                    when is_null_value({{ col_id }})
+                      or lower({{ col_id }}) = 'null'
+                    then null
+                    else {{ col_id }}
+                 end)
+            {%- endset -%}
+            {{ quoted_name }} {{ data_type }} as ({{ col_expression }}::{{ data_type }})
+            {{- ',' if not loop.last
+                 or infer_schema_incl_filename_column
+                 or infer_schema_incl_filelastchanged_column
+                 or infer_schema_incl_rownumber_column
+                 or infer_schema_incl_partition_column -}}
+        {%- endfor %}
+        {%- if infer_schema_incl_filename_column -%}
+            source_filename VARCHAR AS (METADATA$FILENAME)
+            {{- ',' if not infer_schema_incl_filelastchanged_column or infer_schema_incl_rownumber_column or infer_schema_incl_partition_column -}}
         {%- endif -%}
+        {%- if infer_schema_incl_filelastchanged_column -%}
+            source_file_last_modified TIMESTAMP_NTZ AS (METADATA$FILE_LAST_MODIFIED)
+            {{- ',' if not infer_schema_incl_rownumber_column or infer_schema_incl_partition_column -}}
+        {%- endif -%}
+        {%- if infer_schema_incl_rownumber_column -%}
+            source_file_row_number BIGINT AS (METADATA$FILE_ROW_NUMBER)
+            {{- ',' if not infer_schema_incl_partition_column -}}
+        {%- endif -%}
+        {%- if infer_schema_incl_partition_column -%}
+            {%- if partitions -%}{%- for partition in partitions %}
+                 ','{{partition.name}}{{- ',' if not loop.last  -}}
+            {%- endfor -%}{%- endif -%}
+        {%- endif -%}
+    {%- endif -%}
     )
     {%- endif -%}
     {% if partitions %} partition by ({{partitions|map(attribute='name')|join(', ')}}) {% endif %}
